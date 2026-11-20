@@ -1,0 +1,836 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>html{color-scheme:light dark}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>100 фильмов</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: iOS-style single column. Sticky blurred bar, large title, inset grouped lists with round checks, bottom sheet for appearance. */
+:root {
+  --bg: #F2F2F7;
+  --surface: #FFFFFF;
+  --ink: #0B0B0F;
+  --muted: #6C6C70;
+  --line: #DEDEE3;
+  --track: #E3E3E8;
+  --accent: #007AFF;
+  --accent-ink: #FFFFFF;
+  --bar: rgba(242, 242, 247, 0.82);
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", Roboto, system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #000000;
+    --surface: #1C1C1E;
+    --ink: #F5F5F7;
+    --muted: #8E8E93;
+    --line: #38383A;
+    --track: #2C2C2E;
+    --accent: #0A84FF;
+    --bar: rgba(0, 0, 0, 0.8);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #000000;
+  --surface: #1C1C1E;
+  --ink: #F5F5F7;
+  --muted: #8E8E93;
+  --line: #38383A;
+  --track: #2C2C2E;
+  --accent: #0A84FF;
+  --bar: rgba(0, 0, 0, 0.8);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 17px;
+  line-height: 1.3;
+  padding-block: 0 48px;
+  transition: background-color .25s ease, color .25s ease;
+}
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px);
+  z-index: 30; background: var(--bg);
+}
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button { font-family: inherit; }
+
+.pad {
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.in { max-width: 640px; margin-inline: auto; }
+
+/* sticky bar */
+.nav {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  background: var(--bar);
+  -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid transparent; transition: border-color .2s ease;
+}
+.nav.scrolled { border-bottom-color: var(--line); }
+.nav-in { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; height: 48px; }
+.nav-t { text-align: center; font-weight: 600; font-size: 17px; opacity: 0; transition: opacity .2s ease; }
+.nav.scrolled .nav-t { opacity: 1; }
+.ib {
+  justify-self: end; width: 36px; height: 36px; border-radius: 50%;
+  display: grid; place-items: center; cursor: pointer;
+  color: var(--accent); background: var(--surface); border: 1px solid var(--line);
+}
+.ib:active { transform: scale(.94); }
+
+h1 { margin: 2px 0 0; font-size: 34px; line-height: 1.1; font-weight: 700; letter-spacing: .01em; }
+.sub { margin: 4px 0 0; color: var(--muted); font-size: 15px; }
+
+.stack { display: grid; gap: 14px; margin-top: 16px; }
+
+.search {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--track); border-radius: 10px; padding: 0 10px; height: 36px; color: var(--muted);
+}
+.search input {
+  flex: 1; min-width: 0; height: 100%; border: 0; background: transparent; color: var(--ink);
+  font: inherit; font-size: 17px; outline: none;
+}
+.search input::placeholder { color: var(--muted); }
+.search input::-webkit-search-cancel-button { -webkit-appearance: none; }
+.search:focus-within { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.card {
+  background: var(--surface); border-radius: 12px; border: 1px solid var(--line); overflow: hidden;
+  transition: background-color .25s ease;
+}
+.prog { padding: 14px 16px 16px; display: grid; gap: 12px; }
+.prog-top { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+.lbl { color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .03em; }
+.big { font-size: 15px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.big b { font-size: 34px; line-height: 1.1; font-weight: 700; color: var(--ink); letter-spacing: .01em; }
+.pct { font-size: 22px; font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; }
+.track { height: 8px; background: var(--track); border-radius: 4px; overflow: hidden; }
+.fill { height: 100%; width: 0; background: var(--accent); border-radius: 4px; transition: width .3s ease; }
+
+.seg {
+  display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+  background: var(--track); border-radius: 9px; padding: 2px; gap: 2px;
+}
+.seg button {
+  min-width: 0; font-size: 13px; font-weight: 500; color: var(--ink);
+  border: 0; background: transparent; padding: 7px 4px; border-radius: 7px; cursor: pointer;
+  white-space: nowrap;
+}
+.seg button[aria-pressed="true"] { background: var(--surface); font-weight: 600; box-shadow: 0 1px 3px rgba(0, 0, 0, .2); }
+
+/* lists */
+.sec { margin-top: 26px; }
+.sec[hidden] { display: none; }
+.sec-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 0 16px 6px; }
+.sec-h h2 { margin: 0; font-size: 13px; font-weight: 400; letter-spacing: .03em; text-transform: uppercase; color: var(--muted); }
+.cnt { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.grid { list-style: none; margin: 0; padding: 0; }
+.row { position: relative; min-width: 0; }
+.row[hidden] { display: none; }
+.row::before { content: ""; position: absolute; top: 0; left: 52px; right: 0; height: 1px; background: var(--line); }
+.row.first::before { display: none; }
+.row label { display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 9px 16px; cursor: pointer; position: relative; min-width: 0; }
+.row label:active { background: var(--track); }
+.row input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.box {
+  flex: none; width: 24px; height: 24px; border-radius: 50%;
+  border: 1.5px solid var(--muted); display: grid; place-items: center;
+  transition: background-color .15s ease, border-color .15s ease;
+}
+.box svg { width: 14px; height: 14px; opacity: 0; transform: scale(.4); transition: transform .2s cubic-bezier(.3, 1.6, .5, 1), opacity .12s ease; stroke: var(--accent-ink); }
+input:checked ~ .box { background: var(--accent); border-color: var(--accent); }
+input:checked ~ .box svg { opacity: 1; transform: scale(1); }
+input:focus-visible ~ .box { outline: 2px solid var(--accent); outline-offset: 3px; }
+.txt { display: grid; gap: 1px; min-width: 0; }
+.t { font-size: 17px; overflow-wrap: anywhere; }
+.m { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+.row.done .t { color: var(--muted); text-decoration: line-through; text-decoration-thickness: 1.5px; }
+
+.empty { margin: 36px 0 0; text-align: center; color: var(--muted); }
+.empty[hidden] { display: none; }
+
+/* appearance sheet */
+.scrim { position: fixed; inset: 0; background: rgba(0, 0, 0, .3); opacity: 0; transition: opacity .28s ease; z-index: 40; }
+.scrim.open { opacity: 1; }
+.sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; margin-inline: auto; width: 100%; max-width: 560px;
+  max-height: 86%; overflow-y: auto; overscroll-behavior: contain;
+  background: var(--bg); color: var(--ink); border-radius: 14px 14px 0 0;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, .22);
+  transform: translateY(105%); transition: transform .34s cubic-bezier(.2, .85, .25, 1); z-index: 41;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.sheet.open { transform: none; }
+.grab { width: 38px; height: 5px; border-radius: 3px; background: var(--track); margin: 8px auto 0; }
+.sh-head { display: flex; justify-content: space-between; align-items: center; padding: 6px 16px 4px; }
+.sh-head h2 { margin: 0; font-size: 20px; font-weight: 700; }
+.txtbtn { border: 0; background: transparent; color: var(--accent); font-size: 17px; font-weight: 600; padding: 8px 4px; cursor: pointer; }
+.sh-body { display: grid; gap: 4px; padding-block: 8px 20px; }
+.sec-l { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 14px 16px 6px; color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: .03em; }
+.hint { text-transform: none; letter-spacing: 0; }
+.pick { padding: 12px; display: grid; gap: 14px; }
+.sw-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; padding: 2px 4px 4px; }
+.sw {
+  aspect-ratio: 1; width: 100%; max-width: 46px; justify-self: center; border-radius: 50%; padding: 0; cursor: pointer;
+  border: 1px solid rgba(128, 128, 128, .4); display: grid; place-items: center;
+}
+.pick .seg button[aria-pressed="true"] { background: color-mix(in srgb, var(--ink) 18%, var(--surface)); box-shadow: none; }
+.sw[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent); }
+.sw svg { width: 18px; height: 18px; }
+.reset {
+  margin: 14px 0 0; width: 100%; border: 1px solid var(--line); background: var(--surface); color: #FF3B30;
+  font-size: 17px; padding: 13px; border-radius: 12px; cursor: pointer;
+}
+
+@media (max-width: 340px) { .seg button { font-size: 12px; } }
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+</style>
+
+<div class="nav" id="nav">
+  <div class="pad"><div class="in nav-in">
+    <span></span>
+    <span class="nav-t">Фильмы</span>
+    <button class="ib" id="openSheet" type="button" aria-label="Оформление" aria-haspopup="dialog">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg>
+    </button>
+  </div></div>
+</div>
+
+<main class="pad"><div class="in">
+  <h1>Фильмы</h1>
+  <p class="sub">100 фильмов и все части их франшиз</p>
+
+  <div class="stack">
+    <label class="search">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="Поиск" autocomplete="off" aria-label="Поиск по названию">
+    </label>
+
+    <div class="card prog">
+      <div class="prog-top">
+        <div>
+          <div class="lbl">Просмотрено</div>
+          <div class="big"><b id="doneN">0</b> из <span id="totalN">0</span></div>
+        </div>
+        <div class="pct" id="pct">0%</div>
+      </div>
+      <div class="track"><div class="fill" id="fill"></div></div>
+    </div>
+
+    <div class="seg" id="filters" role="group" aria-label="Фильтр">
+      <button type="button" data-f="all" aria-pressed="true">Все</button>
+      <button type="button" data-f="todo" aria-pressed="false">Осталось</button>
+      <button type="button" data-f="done" aria-pressed="false">Просмотрено</button>
+    </div>
+  </div>
+
+  <div id="list"></div>
+  <p class="empty" id="empty" hidden>Здесь пока пусто.</p>
+</div></main>
+
+<div class="scrim" id="scrim" hidden></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetT" hidden>
+  <div class="grab"></div>
+  <div class="sh-head pad">
+    <h2 id="sheetT">Оформление</h2>
+    <button class="txtbtn" id="done" type="button">Готово</button>
+  </div>
+  <div class="pad sh-body">
+    <div class="sec-l"><span>Фон</span><span class="hint" id="hint-bg"></span></div>
+    <div class="card pick" id="pick-bg"></div>
+    <div class="sec-l"><span>Акцент</span><span class="hint" id="hint-ac"></span></div>
+    <div class="card pick" id="pick-ac"></div>
+    <button class="reset" id="reset" type="button">Сбросить оформление</button>
+  </div>
+</div>
+
+<script>
+(function () {
+var GROUPS = [
+      { n: "Классика", i: [
+        ["Гражданин Кейн", "Citizen Kane", 1941, "m1"],
+        ["Касабланка", "Casablanca", 1942, "m2"],
+        ["Двенадцать разгневанных мужчин", "12 Angry Men", 1957, "m3"],
+        ["Окно во двор", "Rear Window", 1954, "m4"],
+        ["Семь самураев", "Shichinin no samurai", 1954, "m5"],
+        ["Римские каникулы", "Roman Holiday", 1953, "m6"],
+        ["Некоторые любят погорячее", "Some Like It Hot", 1959, "m7"],
+        ["Психо", "Psycho", 1960, "m8"],
+        ["Психо 2", "Psycho II", 1983, "n1"],
+        ["Психо 3", "Psycho III", 1986, "n2"],
+        ["Психо 4: Начало", "Psycho IV: The Beginning", 1990, "n3"],
+        ["Дорога", "La Strada", 1954, "m9"],
+        ["Метрополис", "Metropolis", 1927, "m10"]
+      ]},
+      { n: "Драмы", i: [
+        ["Побег из Шоушенка", "The Shawshank Redemption", 1994, "m11"],
+        ["Зелёная миля", "The Green Mile", 1999, "m12"],
+        ["Форрест Гамп", "Forrest Gump", 1994, "m13"],
+        ["Список Шиндлера", "Schindler's List", 1993, "m14"],
+        ["Пианист", "The Pianist", 2002, "m15"],
+        ["Пролетая над гнездом кукушки", "One Flew Over the Cuckoo's Nest", 1975, "m16"],
+        ["Общество мёртвых поэтов", "Dead Poets Society", 1989, "m17"],
+        ["Американская красота", "American Beauty", 1999, "m18"],
+        ["Умница Уилл Хантинг", "Good Will Hunting", 1997, "m19"],
+        ["Реквием по мечте", "Requiem for a Dream", 2000, "m20"]
+      ]},
+      { n: "Криминал и мафия", i: [
+        ["Крёстный отец", "The Godfather", 1972, "m21"],
+        ["Крёстный отец 2", "The Godfather Part II", 1974, "m22"],
+        ["Крёстный отец 3", "The Godfather Part III", 1990, "n4"],
+        ["Славные парни", "Goodfellas", 1990, "m23"],
+        ["Криминальное чтиво", "Pulp Fiction", 1994, "m24"],
+        ["Леон", "Léon", 1994, "m25"],
+        ["Схватка", "Heat", 1995, "m26"],
+        ["Отступники", "The Departed", 2006, "m27"],
+        ["Старикам тут не место", "No Country for Old Men", 2007, "m28"],
+        ["Однажды в Америке", "Once Upon a Time in America", 1984, "m29"],
+        ["Карты, деньги, два ствола", "Lock, Stock and Two Smoking Barrels", 1998, "m30"]
+      ]},
+      { n: "Триллеры и детективы", i: [
+        ["Молчание ягнят", "The Silence of the Lambs", 1991, "m31"],
+        ["Ганнибал", "Hannibal", 2001, "n5"],
+        ["Красный дракон", "Red Dragon", 2002, "n6"],
+        ["Ганнибал: Восхождение", "Hannibal Rising", 2007, "n7"],
+        ["Семь", "Se7en", 1995, "m32"],
+        ["Бойцовский клуб", "Fight Club", 1999, "m33"],
+        ["Остров проклятых", "Shutter Island", 2010, "m34"],
+        ["Престиж", "The Prestige", 2006, "m35"],
+        ["Подозрительные лица", "The Usual Suspects", 1995, "m36"],
+        ["Шестое чувство", "The Sixth Sense", 1999, "m37"],
+        ["Исчезнувшая", "Gone Girl", 2014, "m38"],
+        ["Помни", "Memento", 2000, "m39"],
+        ["Достать ножи", "Knives Out", 2019, "m40"],
+        ["Достать ножи: Стеклянная луковица", "Glass Onion", 2022, "n8"],
+        ["Достать ножи 3: Проснись, мертвец", "Wake Up Dead Man", 2025, "n9"]
+      ]},
+      { n: "Фантастика", i: [
+        ["Матрица", "The Matrix", 1999, "m41"],
+        ["Матрица: Перезагрузка", "The Matrix Reloaded", 2003, "n10"],
+        ["Матрица: Революция", "The Matrix Revolutions", 2003, "n11"],
+        ["Матрица: Воскрешение", "The Matrix Resurrections", 2021, "n12"],
+        ["Начало", "Inception", 2010, "m42"],
+        ["Интерстеллар", "Interstellar", 2014, "m43"],
+        ["Бегущий по лезвию", "Blade Runner", 1982, "m44"],
+        ["Бегущий по лезвию 2049", "Blade Runner 2049", 2017, "n13"],
+        ["2001 год: Космическая одиссея", "2001: A Space Odyssey", 1968, "m45"],
+        ["2010: Год, когда мы установили контакт", "2010: The Year We Make Contact", 1984, "n14"],
+        ["Чужой", "Alien", 1979, "m46"],
+        ["Чужие", "Aliens", 1986, "n15"],
+        ["Чужой 3", "Alien 3", 1992, "n16"],
+        ["Чужой: Воскрешение", "Alien Resurrection", 1997, "n17"],
+        ["Терминатор", "The Terminator", 1984, "n18"],
+        ["Терминатор 2: Судный день", "Terminator 2: Judgment Day", 1991, "m47"],
+        ["Терминатор 3: Восстание машин", "Terminator 3: Rise of the Machines", 2003, "n19"],
+        ["Терминатор: Да придёт спаситель", "Terminator Salvation", 2009, "n20"],
+        ["Терминатор: Генезис", "Terminator Genisys", 2015, "n21"],
+        ["Терминатор: Тёмные судьбы", "Terminator: Dark Fate", 2019, "n22"],
+        ["Назад в будущее", "Back to the Future", 1985, "m48"],
+        ["Назад в будущее 2", "Back to the Future Part II", 1989, "n23"],
+        ["Назад в будущее 3", "Back to the Future Part III", 1990, "n24"],
+        ["Звёздные войны. Эпизод IV: Новая надежда", "Star Wars", 1977, "m49"],
+        ["Звёздные войны. Эпизод V: Империя наносит ответный удар", "The Empire Strikes Back", 1980, "n25"],
+        ["Звёздные войны. Эпизод VI: Возвращение джедая", "Return of the Jedi", 1983, "n26"],
+        ["Звёздные войны. Эпизод I: Скрытая угроза", "The Phantom Menace", 1999, "n27"],
+        ["Звёздные войны. Эпизод II: Атака клонов", "Attack of the Clones", 2002, "n28"],
+        ["Звёздные войны. Эпизод III: Месть ситхов", "Revenge of the Sith", 2005, "n29"],
+        ["Звёздные войны. Эпизод VII: Пробуждение Силы", "The Force Awakens", 2015, "n30"],
+        ["Звёздные войны. Эпизод VIII: Последние джедаи", "The Last Jedi", 2017, "n31"],
+        ["Звёздные войны. Эпизод IX: Скайуокер. Восход", "The Rise of Skywalker", 2019, "n32"],
+        ["Прибытие", "Arrival", 2016, "m50"]
+      ]},
+      { n: "Приключения и экшен", i: [
+        ["Индиана Джонс: В поисках утраченного ковчега", "Raiders of the Lost Ark", 1981, "m51"],
+        ["Индиана Джонс и Храм судьбы", "Indiana Jones and the Temple of Doom", 1984, "n33"],
+        ["Индиана Джонс и последний крестовый поход", "Indiana Jones and the Last Crusade", 1989, "n34"],
+        ["Индиана Джонс и Королевство хрустального черепа", "Kingdom of the Crystal Skull", 2008, "n35"],
+        ["Индиана Джонс и колесо судьбы", "Dial of Destiny", 2023, "n36"],
+        ["Парк Юрского периода", "Jurassic Park", 1993, "m52"],
+        ["Парк Юрского периода 2: Затерянный мир", "The Lost World: Jurassic Park", 1997, "n37"],
+        ["Парк Юрского периода 3", "Jurassic Park III", 2001, "n38"],
+        ["Мир Юрского периода", "Jurassic World", 2015, "n39"],
+        ["Мир Юрского периода 2", "Jurassic World: Fallen Kingdom", 2018, "n40"],
+        ["Мир Юрского периода: Господство", "Jurassic World Dominion", 2022, "n41"],
+        ["Мир Юрского периода: Возрождение", "Jurassic World Rebirth", 2025, "n42"],
+        ["Властелин колец: Братство Кольца", "The Fellowship of the Ring", 2001, "m53"],
+        ["Властелин колец: Две крепости", "The Two Towers", 2002, "n43"],
+        ["Властелин колец: Возвращение короля", "The Return of the King", 2003, "n44"],
+        ["Бэтмен: Начало", "Batman Begins", 2005, "n45"],
+        ["Тёмный рыцарь", "The Dark Knight", 2008, "m54"],
+        ["Тёмный рыцарь: Возрождение легенды", "The Dark Knight Rises", 2012, "n46"],
+        ["Гладиатор", "Gladiator", 2000, "m55"],
+        ["Гладиатор 2", "Gladiator II", 2024, "n47"],
+        ["Безумный Макс", "Mad Max", 1979, "n48"],
+        ["Безумный Макс 2: Воин дороги", "Mad Max 2: The Road Warrior", 1981, "n49"],
+        ["Безумный Макс 3: Под куполом грома", "Mad Max Beyond Thunderdome", 1985, "n50"],
+        ["Безумный Макс: Дорога ярости", "Mad Max: Fury Road", 2015, "m56"],
+        ["Фуриоса: Хроники Безумного Макса", "Furiosa: A Mad Max Saga", 2024, "n51"],
+        ["Пираты Карибского моря: Проклятие «Чёрной жемчужины»", "Pirates of the Caribbean: The Curse of the Black Pearl", 2003, "m57"],
+        ["Пираты Карибского моря: Сундук мертвеца", "Dead Man's Chest", 2006, "n52"],
+        ["Пираты Карибского моря: На краю света", "At World's End", 2007, "n53"],
+        ["Пираты Карибского моря: На странных берегах", "On Stranger Tides", 2011, "n54"],
+        ["Пираты Карибского моря: Мертвецы не рассказывают сказки", "Dead Men Tell No Tales", 2017, "n55"],
+        ["Крепкий орешек", "Die Hard", 1988, "m58"],
+        ["Крепкий орешек 2", "Die Hard 2", 1990, "n56"],
+        ["Крепкий орешек: Возмездие", "Die Hard with a Vengeance", 1995, "n57"],
+        ["Крепкий орешек 4.0", "Live Free or Die Hard", 2007, "n58"],
+        ["Крепкий орешек: Хороший день, чтобы умереть", "A Good Day to Die Hard", 2013, "n59"],
+        ["Храброе сердце", "Braveheart", 1995, "m59"],
+        ["Джон Уик", "John Wick", 2014, "m60"],
+        ["Джон Уик 2", "John Wick: Chapter 2", 2017, "n60"],
+        ["Джон Уик 3", "John Wick: Chapter 3 – Parabellum", 2019, "n61"],
+        ["Джон Уик 4", "John Wick: Chapter 4", 2023, "n62"]
+      ]},
+      { n: "Анимация", i: [
+        ["Король Лев", "The Lion King", 1994, "m61"],
+        ["Король Лев 2: Гордость Симбы", "The Lion King II: Simba's Pride", 1998, "n63"],
+        ["Король Лев 3: Хакуна Матата", "The Lion King 1½", 2004, "n64"],
+        ["Муфаса: Король Лев", "Mufasa: The Lion King", 2024, "n65"],
+        ["Унесённые призраками", "Sen to Chihiro no kamikakushi", 2001, "m62"],
+        ["Шрек", "Shrek", 2001, "m63"],
+        ["Шрек 2", "Shrek 2", 2004, "n66"],
+        ["Шрек Третий", "Shrek the Third", 2007, "n67"],
+        ["Шрек навсегда", "Shrek Forever After", 2010, "n68"],
+        ["ВАЛЛ-И", "WALL·E", 2008, "m64"],
+        ["Вверх", "Up", 2009, "m65"],
+        ["Тайна Коко", "Coco", 2017, "m66"],
+        ["Рататуй", "Ratatouille", 2007, "m67"],
+        ["Мой сосед Тоторо", "Tonari no Totoro", 1988, "m68"]
+      ]},
+      { n: "Комедии и добрые фильмы", i: [
+        ["Один дома", "Home Alone", 1990, "m69"],
+        ["Один дома 2: Потерянный в Нью-Йорке", "Home Alone 2: Lost in New York", 1992, "n69"],
+        ["Один дома 3", "Home Alone 3", 1997, "n70"],
+        ["1+1", "Intouchables", 2011, "m70"],
+        ["Амели", "Le Fabuleux Destin d'Amélie Poulain", 2001, "m71"],
+        ["Жизнь прекрасна", "La vita è bella", 1997, "m72"],
+        ["Отель «Гранд Будапешт»", "The Grand Budapest Hotel", 2014, "m73"],
+        ["Невероятная жизнь Уолтера Митти", "The Secret Life of Walter Mitty", 2013, "m74"],
+        ["Мальчишник в Вегасе", "The Hangover", 2009, "m75"],
+        ["Мальчишник 2: Из Вегаса в Бангкок", "The Hangover Part II", 2011, "n71"],
+        ["Мальчишник: Часть III", "The Hangover Part III", 2013, "n72"],
+        ["Пока не сыграл в ящик", "The Bucket List", 2007, "m76"],
+        ["Маска", "The Mask", 1994, "m77"],
+        ["Сын Маски", "Son of the Mask", 2005, "n73"],
+        ["Ла-Ла Ленд", "La La Land", 2016, "m78"]
+      ]},
+      { n: "Романтика", i: [
+        ["Титаник", "Titanic", 1997, "m79"],
+        ["Дневник памяти", "The Notebook", 2004, "m80"],
+        ["Вечное сияние чистого разума", "Eternal Sunshine of the Spotless Mind", 2004, "m81"],
+        ["Завтрак у Тиффани", "Breakfast at Tiffany's", 1961, "m82"]
+      ]},
+      { n: "Наше кино", i: [
+        ["Бриллиантовая рука", "", 1968, "m83"],
+        ["Иван Васильевич меняет профессию", "", 1973, "m84"],
+        ["Операция «Ы» и другие приключения Шурика", "", 1965, "m85"],
+        ["Кавказская пленница", "", 1966, "m86"],
+        ["Джентльмены удачи", "", 1971, "m87"],
+        ["Белое солнце пустыни", "", 1970, "m88"],
+        ["Москва слезам не верит", "", 1979, "m89"],
+        ["Ирония судьбы, или С лёгким паром!", "", 1975, "m90"],
+        ["Ирония судьбы. Продолжение", "", 2007, "n74"],
+        ["Брат", "", 1997, "m91"],
+        ["Брат 2", "", 2000, "n75"],
+        ["Летят журавли", "", 1957, "m92"]
+      ]},
+      { n: "Мировое кино", i: [
+        ["Паразиты", "Gisaengchung", 2019, "m93"],
+        ["Город Бога", "Cidade de Deus", 2002, "m94"],
+        ["Лабиринт Фавна", "El laberinto del fauno", 2006, "m95"],
+        ["Мальчик в полосатой пижаме", "The Boy in the Striped Pyjamas", 2008, "m96"],
+        ["Хатико: Самый верный друг", "Hachi: A Dog's Tale", 2009, "m97"],
+        ["Олдбой", "Oldboy", 2003, "m98"],
+        ["Жизнь других", "Das Leben der Anderen", 2006, "m99"],
+        ["Достучаться до небес", "Knockin' on Heaven's Door", 1997, "m100"]
+      ]}
+    ];
+
+  var LS = "movies100.done", TS = "movies100.theme";
+  var done = new Set(), rows = {}, secs = [], filter = "all", q = "", total = 0;
+  var reduce = false;
+  try { reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
+
+  function $(id) { return document.getElementById(id); }
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function lsGet(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function validHex(v) { return typeof v === "string" && /^#[0-9a-f]{6}$/i.test(v) ? v : null; }
+
+  /* ---------- colour maths ---------- */
+  function h2r(h) { h = h.replace("#", ""); return [parseInt(h.substr(0, 2), 16), parseInt(h.substr(2, 2), 16), parseInt(h.substr(4, 2), 16)]; }
+  function r2h(r) { return "#" + r.map(function (v) { return Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, "0"); }).join(""); }
+  function mix(a, b, t) { var x = h2r(a), y = h2r(b); return r2h([0, 1, 2].map(function (i) { return x[i] * (1 - t) + y[i] * t; })); }
+  function lum(h) {
+    var c = h2r(h).map(function (v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  }
+  function cr(a, b) { var l1 = lum(a), l2 = lum(b); if (l1 < l2) { var t = l1; l1 = l2; l2 = t; } return (l1 + 0.05) / (l2 + 0.05); }
+
+  /* ---------- palettes ---------- */
+  var FAM = [{ k: "white", n: "Белый" }, { k: "black", n: "Чёрный" }, { k: "purple", n: "Фиолетовый" }, { k: "blue", n: "Синий" }];
+  var PAL = {
+    bg: {
+      white: ["#FFFFFF", "#F8F8FA", "#F2F2F7", "#ECECF1", "#E3E3E8", "#D8D8DE"],
+      black: ["#000000", "#0B0B0D", "#141416", "#1C1C1E", "#2C2C2E", "#3A3A3C"],
+      purple: ["#F4EFFE", "#DCCDFB", "#B197F2", "#7C4DDB", "#4B2A9B", "#241346"],
+      blue: ["#EAF3FF", "#CFE3FF", "#8DBBFF", "#2F6FE0", "#12419C", "#071B40"]
+    },
+    ac: {
+      white: ["#FFFFFF", "#F2F2F7", "#E5E5EA", "#C7C7CC", "#AEAEB2", "#8E8E93"],
+      black: ["#000000", "#1C1C1E", "#2C2C2E", "#3A3A3C", "#48484A", "#636366"],
+      purple: ["#C9A7FF", "#BF5AF2", "#AF52DE", "#8E5CF5", "#7C3AED", "#4527A0"],
+      blue: ["#64D2FF", "#5AC8FA", "#0A84FF", "#007AFF", "#2563EB", "#1E3A8A"]
+    }
+  };
+  var theme = { bg: null, ac: null };
+  var ui = { bg: "white", ac: "blue" };
+
+  function findColor(kind, hex) {
+    if (!hex) return null;
+    for (var i = 0; i < FAM.length; i++) {
+      var list = PAL[kind][FAM[i].k];
+      for (var j = 0; j < list.length; j++) {
+        if (list[j].toLowerCase() === hex.toLowerCase()) return { fam: FAM[i], idx: j };
+      }
+    }
+    return null;
+  }
+
+  var OVERRIDES = ["--bg", "--surface", "--ink", "--muted", "--line", "--track", "--bar", "--accent", "--accent-ink"];
+  function applyTheme() {
+    var root = document.documentElement, st = root.style;
+    OVERRIDES.forEach(function (p) { st.removeProperty(p); });
+    st.removeProperty("color-scheme");
+    if (theme.bg) {
+      var B = theme.bg;
+      var ink = cr(B, "#0B0B0F") >= cr(B, "#F5F5F7") ? "#0B0B0F" : "#F5F5F7";
+      var dark = ink === "#F5F5F7";
+      var rgb = h2r(B);
+      st.setProperty("--bg", B);
+      st.setProperty("--ink", ink);
+      st.setProperty("--surface", dark ? mix(B, "#FFFFFF", 0.09) : mix(B, "#FFFFFF", 0.6));
+      st.setProperty("--muted", mix(ink, B, 0.38));
+      st.setProperty("--line", mix(ink, B, 0.86));
+      st.setProperty("--track", mix(ink, B, 0.9));
+      st.setProperty("--bar", "rgba(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ",0.82)");
+      st.setProperty("color-scheme", dark ? "dark" : "light");
+    }
+    if (theme.ac) {
+      var A = theme.ac;
+      var cs = getComputedStyle(root);
+      var bgNow = (cs.getPropertyValue("--bg") || "").trim();
+      var inkNow = (cs.getPropertyValue("--ink") || "").trim();
+      if (validHex(bgNow) && validHex(inkNow) && cr(A, bgNow) < 2) A = inkNow;
+      st.setProperty("--accent", A);
+      st.setProperty("--accent-ink", cr(A, "#FFFFFF") >= cr(A, "#000000") ? "#FFFFFF" : "#000000");
+    }
+  }
+
+  /* ---------- sync (local + per-user db) ---------- */
+  function makeSync(build, adopt, hasLocal) {
+    var ref = null, timer = null, busy = false, again = false, first = true;
+    var api = {};
+    async function flush() {
+      timer = null;
+      if (busy) { again = true; return; }
+      busy = true;
+      try { await ref.set(build()); } catch (e) {}
+      busy = false;
+      if (again) { again = false; flush(); }
+    }
+    api.dirty = function () {
+      if (!ref) return;
+      clearTimeout(timer);
+      timer = setTimeout(flush, 350);
+    };
+    api.attach = function (r) {
+      ref = r;
+      r.onSnapshot(function (s) {
+        if (timer || busy || again) return;
+        var d = s.exists ? s.data() : null;
+        if (first) {
+          if (s.metadata.fromCache && !s.exists) return;
+          first = false;
+          if (d) { if (adopt(d, true)) api.dirty(); }
+          else if (hasLocal()) api.dirty();
+          return;
+        }
+        if (d) adopt(d, false);
+      }, function () {});
+    };
+    return api;
+  }
+
+  var movieSync = makeSync(
+    function () { return { done: Array.from(done) }; },
+    function (d, isFirst) {
+      var remote = Array.isArray(d.done) ? d.done.filter(function (id) { return rows[id]; }) : [];
+      if (isFirst) {
+        remote.forEach(function (id) { done.add(id); });
+        update(); lsSet(LS, Array.from(done));
+        return done.size !== remote.length;
+      }
+      done = new Set(remote);
+      update(); lsSet(LS, Array.from(done));
+      return false;
+    },
+    function () { return done.size > 0; }
+  );
+  var themeSync = makeSync(
+    function () { return { bg: theme.bg, ac: theme.ac }; },
+    function (d) {
+      theme.bg = validHex(d.bg); theme.ac = validHex(d.ac);
+      lsSet(TS, theme);
+      syncUI(); applyTheme(); renderPicks();
+      return false;
+    },
+    function () { return !!(theme.bg || theme.ac); }
+  );
+
+  /* ---------- list ---------- */
+  var list = $("list");
+  GROUPS.forEach(function (g) {
+    var sec = el("section", "sec");
+    var head = el("div", "sec-h");
+    var cnt = el("span", "cnt");
+    head.append(el("h2", null, g.n), cnt);
+    var card = el("div", "card");
+    var ul = el("ul", "grid");
+    var ids = [];
+    g.i.forEach(function (m) {
+      total++;
+      var id = m[3];
+      ids.push(id);
+      var li = el("li", "row");
+      var lab = el("label");
+      var inp = document.createElement("input");
+      inp.type = "checkbox";
+      inp.id = id;
+      var box = el("span", "box");
+      box.setAttribute("aria-hidden", "true");
+      box.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l3 3 6-7"/></svg>';
+      var txt = el("span", "txt");
+      txt.append(el("span", "t", m[0]), el("span", "m", (m[1] ? m[1] + " · " : "") + m[2]));
+      lab.append(inp, box, txt);
+      li.append(lab);
+      ul.append(li);
+      rows[id] = { li: li, inp: inp, hay: (m[0] + " " + m[1]).toLowerCase() };
+      inp.addEventListener("change", function () {
+        if (inp.checked) done.add(id); else done.delete(id);
+        update(); lsSet(LS, Array.from(done)); movieSync.dirty();
+      });
+    });
+    card.append(ul);
+    sec.append(head, card);
+    list.append(sec);
+    secs.push({ sec: sec, cnt: cnt, ids: ids });
+  });
+
+  function update() {
+    var any = false;
+    secs.forEach(function (s) {
+      var d = 0, vis = 0;
+      s.ids.forEach(function (id) {
+        var r = rows[id], on = done.has(id);
+        if (on) d++;
+        r.inp.checked = on;
+        r.li.classList.toggle("done", on);
+        var okF = filter === "all" || (filter === "todo" && !on) || (filter === "done" && on);
+        var okQ = !q || r.hay.indexOf(q) >= 0;
+        var show = okF && okQ;
+        r.li.hidden = !show;
+        r.li.classList.toggle("first", show && vis === 0);
+        if (show) vis++;
+      });
+      s.cnt.textContent = d + " из " + s.ids.length;
+      s.sec.hidden = vis === 0;
+      if (vis) any = true;
+    });
+    var n = done.size;
+    $("doneN").textContent = n;
+    $("totalN").textContent = total;
+    $("pct").textContent = Math.round(n / total * 100) + "%";
+    $("fill").style.width = (n / total * 100) + "%";
+    var empty = $("empty");
+    empty.hidden = any;
+    empty.textContent = q ? "Ничего не найдено." : (filter === "todo" ? "Всё посмотрено." : "Здесь пока пусто.");
+  }
+
+  $("filters").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-f]");
+    if (!b) return;
+    filter = b.getAttribute("data-f");
+    Array.prototype.forEach.call(this.children, function (c) { c.setAttribute("aria-pressed", String(c === b)); });
+    update();
+  });
+  $("q").addEventListener("input", function () { q = this.value.trim().toLowerCase(); update(); });
+
+  var nav = $("nav");
+  function onScroll() { nav.classList.toggle("scrolled", (window.scrollY || 0) > 56); }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+
+  /* ---------- appearance sheet ---------- */
+  function syncUI() {
+    var b = findColor("bg", theme.bg), a = findColor("ac", theme.ac);
+    if (b) ui.bg = b.fam.k;
+    if (a) ui.ac = a.fam.k;
+  }
+  function renderPick(kind, focusSel) {
+    var host = $("pick-" + kind), cur = theme[kind], fam = ui[kind];
+    host.textContent = "";
+    var seg = el("div", "seg");
+    seg.setAttribute("role", "group");
+    seg.setAttribute("aria-label", kind === "bg" ? "Цвет фона" : "Цвет акцента");
+    FAM.forEach(function (f) {
+      var b = el("button", null, f.n);
+      b.type = "button";
+      b.dataset.fam = f.k;
+      b.setAttribute("aria-pressed", String(f.k === fam));
+      b.addEventListener("click", function () { ui[kind] = f.k; renderPick(kind, '[data-fam="' + f.k + '"]'); });
+      seg.append(b);
+    });
+    var grid = el("div", "sw-grid");
+    PAL[kind][fam].forEach(function (hex, i) {
+      var b = el("button", "sw");
+      b.type = "button";
+      b.dataset.i = i;
+      b.style.background = hex;
+      var famName = FAM.filter(function (f) { return f.k === fam; })[0].n;
+      b.setAttribute("aria-label", (kind === "bg" ? "Фон" : "Акцент") + ": " + famName + ", оттенок " + (i + 1));
+      var on = !!(cur && cur.toLowerCase() === hex.toLowerCase());
+      b.setAttribute("aria-pressed", String(on));
+      if (on) {
+        var ck = cr(hex, "#FFFFFF") >= cr(hex, "#000000") ? "#FFFFFF" : "#000000";
+        b.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="' + ck + '" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7"/></svg>';
+      }
+      b.addEventListener("click", function () { setColor(kind, hex, '[data-i="' + i + '"]'); });
+      grid.append(b);
+    });
+    host.append(seg, grid);
+    var found = findColor(kind, cur);
+    $("hint-" + kind).textContent = found ? found.fam.n + " · " + (found.idx + 1) : (kind === "bg" ? "Как в системе" : "Стандартный");
+    if (focusSel) { var f2 = host.querySelector(focusSel); if (f2) f2.focus(); }
+  }
+  function renderPicks() { renderPick("bg"); renderPick("ac"); }
+  function commit(focusKind, focusSel) {
+    applyTheme();
+    lsSet(TS, theme);
+    themeSync.dirty();
+    if (focusKind) renderPick(focusKind, focusSel); else renderPicks();
+    var other = focusKind === "bg" ? "ac" : "bg";
+    if (focusKind) renderPick(other);
+  }
+  function setColor(kind, hex, focusSel) {
+    theme[kind] = hex;
+    syncUI();
+    commit(kind, focusSel);
+  }
+  $("reset").addEventListener("click", function () {
+    theme = { bg: null, ac: null };
+    commit(null);
+  });
+
+  var sheet = $("sheet"), scrim = $("scrim"), opener = null;
+  function openSheet() {
+    opener = document.activeElement;
+    scrim.hidden = false; sheet.hidden = false;
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        scrim.classList.add("open"); sheet.classList.add("open");
+        $("done").focus();
+      });
+    });
+  }
+  function closeSheet() {
+    if (sheet.hidden) return;
+    scrim.classList.remove("open"); sheet.classList.remove("open");
+    var fin = function () { scrim.hidden = true; sheet.hidden = true; };
+    if (reduce) fin(); else setTimeout(fin, 340);
+    if (opener && opener.focus) opener.focus();
+  }
+  $("openSheet").addEventListener("click", openSheet);
+  $("done").addEventListener("click", closeSheet);
+  scrim.addEventListener("click", closeSheet);
+  document.addEventListener("keydown", function (e) {
+    if (sheet.hidden) return;
+    if (e.key === "Escape") { closeSheet(); return; }
+    if (e.key === "Tab") {
+      var f = sheet.querySelectorAll("button");
+      if (!f.length) return;
+      var first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
+
+  /* ---------- boot ---------- */
+  var savedTheme = lsGet(TS);
+  if (savedTheme && typeof savedTheme === "object") { theme.bg = validHex(savedTheme.bg); theme.ac = validHex(savedTheme.ac); }
+  syncUI();
+  applyTheme();
+  renderPicks();
+
+  var savedDone = lsGet(LS);
+  if (Array.isArray(savedDone)) savedDone.forEach(function (id) { if (rows[id]) done.add(id); });
+  update();
+
+  (async function () {
+    try {
+      if (!window.claude || !claude.use) return;
+      var db = await claude.use("db");
+      var user = await claude.use("user");
+      if (!db || !user) return;
+      var uid = await user.id();
+      if (!uid) return;
+      movieSync.attach(db.doc("data/users/" + uid + "/movies"));
+      themeSync.attach(db.doc("data/users/" + uid + "/settings"));
+    } catch (e) {}
+  })();
+})();
+</script>
+
+<script>
+/* Android: tell the native shell which colour the page background is, so system bars match. */
+(function () {
+  function hex(h) { h = h.replace("#", ""); return [0, 2, 4].map(function (i) { return parseInt(h.substr(i, 2), 16); }); }
+  function lum(h) {
+    var c = hex(h).map(function (v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  }
+  function push() {
+    try {
+      if (!window.AndroidBridge) return;
+      var b = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();
+      if (!/^#[0-9a-f]{6}$/i.test(b)) return;
+      window.AndroidBridge.setTheme(b, lum(b) < 0.4);
+    } catch (e) {}
+  }
+  new MutationObserver(push).observe(document.documentElement, { attributes: true, attributeFilter: ["style", "data-theme"] });
+  try { window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", push); } catch (e) {}
+  window.addEventListener("load", function () { push(); setTimeout(push, 300); });
+  push();
+})();
+</script>
+</body>
+</html>
