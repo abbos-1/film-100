@@ -2,7 +2,7 @@ name: Build APK
 
 on:
   push:
-    branches: [main]
+    branches: [main, android-app]
     tags: ["v*"]
   pull_request:
   workflow_dispatch:
@@ -39,6 +39,16 @@ jobs:
         with:
           name: film100-apk
           path: film100.apk
+
+      - name: Publish release (branch build)
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/android-app'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: "100 фильмов, сборка ${{ github.run_number }}"
+          target_commitish: ${{ github.sha }}
+          body: "Скачай film100.apk и установи на телефон."
+          files: film100.apk
 
       - name: Publish release (tags only)
         if: startsWith(github.ref, 'refs/tags/v')
